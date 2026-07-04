@@ -37,6 +37,7 @@ var (
 // newUICmd는 웹 UI 서버를 실행하는 ui 서브커맨드를 생성한다.
 func newUICmd() *cobra.Command {
 	var port int
+	var noBrowser bool
 
 	cmd := &cobra.Command{
 		Use:   "ui",
@@ -77,12 +78,21 @@ func newUICmd() *cobra.Command {
 			}
 			http.HandleFunc("/", handleDashboard)
 
-			go openBrowser("http://" + addr)
+			// Skip auto-opening the browser in audit/CI runs. Either the
+			// --no-browser flag or a non-empty AUTOPUS_NO_BROWSER env var
+			// suppresses it so verification runs never leave stray Chrome
+			// --app windows behind.
+			if noBrowser || os.Getenv("AUTOPUS_NO_BROWSER") != "" {
+				fmt.Printf("🔇 no-browser 모드: 브라우저를 열지 않습니다. http://%s 에서 확인하세요.\n", addr)
+			} else {
+				go openBrowser("http://" + addr)
+			}
 			return http.ListenAndServe(addr, nil)
 		},
 	}
 
 	cmd.Flags().IntVarP(&port, "port", "p", 8080, "서버 포트 번호")
+	cmd.Flags().BoolVar(&noBrowser, "no-browser", false, "브라우저 자동 열기 비활성화 (검증/CI용)")
 	return cmd
 }
 
