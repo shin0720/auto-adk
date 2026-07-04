@@ -22,6 +22,21 @@ type workflowState struct {
 	Logs          []workflowLogEntry   `json:"logs"`
 	Approval      workflowApproval     `json:"approval"`
 	SystemPrompts map[string]string    `json:"systemPrompts,omitempty"`
+
+	// Planner intake / readiness / design shells (PR #23). The server does not
+	// interpret these; it only round-trips the client-authored JSON so the
+	// dashboard can persist planning metadata. json.RawMessage keeps arbitrary
+	// nested shapes intact, and omitempty means legacy state.json files without
+	// these keys decode without error.
+	Intake             json.RawMessage `json:"intake,omitempty"`
+	Readiness          json.RawMessage `json:"readiness,omitempty"`
+	DesignBrief        json.RawMessage `json:"designBrief,omitempty"`
+	UiuxGate           json.RawMessage `json:"uiuxGate,omitempty"`
+	AcceptanceEvidence json.RawMessage `json:"acceptanceEvidence,omitempty"`
+	CostQuota          json.RawMessage `json:"costQuota,omitempty"`
+	Maintenance        json.RawMessage `json:"maintenance,omitempty"`
+	Rollback           json.RawMessage `json:"rollback,omitempty"`
+	UiuxDiscovery      json.RawMessage `json:"uiuxDiscovery,omitempty"`
 }
 
 type checklistItem struct {

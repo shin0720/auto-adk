@@ -246,3 +246,4 @@
         window.zoomOut = zoomOut;
         window.autoFixAgent = autoFixAgent;
         window.viewCompletedOutput = viewCompletedOutput;
+        window.openIntakePanel = openIntakePanel;

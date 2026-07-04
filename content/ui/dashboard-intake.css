@@ -1,0 +1,124 @@
+        /* PR #23: Planner intake / readiness / design-brief shell styles.
+           Reuses existing design tokens (--bg2/--border/--fg/--ok/--warn…)
+           for visual consistency with the rest of the dashboard. */
+
+        .intake-shell {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            padding: 4px 2px;
+        }
+
+        .intake-section-title {
+            margin: 6px 0 2px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--fg);
+            letter-spacing: -0.01em;
+        }
+
+        .intake-card {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 14px;
+            box-shadow: var(--shadow-card);
+        }
+
+        .intake-card-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .intake-card-head h4 {
+            margin: 0;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--fg);
+        }
+
+        .intake-head-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .intake-card-body {
+            font-size: 12px;
+            color: var(--fg2);
+            line-height: 1.55;
+        }
+
+        .intake-empty {
+            margin: 0;
+            color: var(--fg3);
+            font-style: normal;
+        }
+
+        .intake-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 10px;
+            font-weight: 600;
+            line-height: 1.6;
+            white-space: nowrap;
+        }
+
+        .intake-badge.b-gray {
+            background: var(--bg3);
+            color: var(--fg2);
+            border: 1px solid var(--border);
+        }
+
+        .intake-btn {
+            background: var(--bg3);
+            color: var(--fg3);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 4px 10px;
+            font-size: 11px;
+            font-weight: 500;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .intake-btn:disabled {
+            cursor: not-allowed;
+        }
+
+        .intake-verdict {
+            font-size: 12px;
+            color: var(--fg2);
+        }
+
+        .intake-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+
+        .intake-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            border: 1px solid var(--border);
+        }
+
+        .intake-tag.t-real  { background: color-mix(in srgb, var(--ok) 18%, transparent);   color: var(--ok); }
+        .intake-tag.t-stub  { background: color-mix(in srgb, var(--warn) 18%, transparent); color: var(--warn); }
+        .intake-tag.t-human { background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent); }
+        .intake-tag.t-block { background: color-mix(in srgb, var(--err) 18%, transparent);  color: var(--err); }
+        .intake-tag.t-defer { background: var(--bg3); color: var(--fg2); }
+
+        @media (max-width: 700px) {
+            .intake-card-head { flex-direction: column; align-items: flex-start; gap: 6px; }
+            .intake-head-right { align-self: flex-start; }
+        }

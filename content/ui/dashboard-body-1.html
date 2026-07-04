@@ -67,6 +67,7 @@
             <!-- 액션 버튼: 미니멀하게 -->
             <div class="top-actions">
                 <button id="btn-pipeline-mode" class="top-btn" onclick="togglePipelineMode()" title="파이프라인 모드 전환">🤖 자동</button>
+                <button class="top-btn" onclick="openIntakePanel()" title="기획 인테이크 · 준비 점검 · 디자인 브리프">📋 기획</button>
                 <button class="top-btn" onclick="document.getElementById(&#39;import-wf-input&#39;).click()" title="워크플로우 불러오기 (JSON)">불러오기</button>
                 <input type="file" id="import-wf-input" accept=".json" style="display:none" onchange="importWorkflow(event)">
                 <button class="top-btn" onclick="exportWorkflow()" title="워크플로우 내보내기 (JSON)">내보내기</button>
