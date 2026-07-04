@@ -163,6 +163,8 @@
             workflowState.connections = data.connections || [];
             workflowState.logs = data.logs || [];
             workflowState.approval = data.approval || {};
+            if (typeof restoreIntakeState === 'function') restoreIntakeState(data);
+            if (typeof restoreUiuxDiscoveryState === 'function') restoreUiuxDiscoveryState(data);
             if (data.systemPrompts) Object.entries(data.systemPrompts).forEach(([k, v]) => systemPrompts.set(k, v));
             workflowState.logs.forEach((entry) => { if (entry.id) seenEventIds.add(entry.id); });
             // Check which agents are still running on the server before resetting.
