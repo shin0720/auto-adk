@@ -17,6 +17,26 @@
             { id: 'in-forbidden', group: 'intake', category: '금지사항',     text: '절대 하지 말아야 할 것이 있나요?',                        required: false, type: 'textarea', round: 0, source: 'template' }
         ];
 
+        // Optional follow-up questions. These expand the intake pool so that
+        // vague / commercial tiers can reach the 20~30 policy range. All are
+        // optional so required stays at the same 8-question core.
+        const INTAKE_FOLLOWUP_TEMPLATES = [
+            { id: 'in-tiebreak',  group: 'intake',    category: '우선순위 충돌', text: '기능 간 우선순위가 충돌할 때 무엇을 기준으로 결정하나요?',       required: false, type: 'textarea', round: 0, source: 'template' },
+            { id: 'in-mvp',       group: 'intake',    category: 'MVP 범위',     text: 'MVP에 반드시 넣을 것과 후속 버전으로 미룰 것을 구분해 주세요.', required: false, type: 'textarea', round: 0, source: 'template' },
+            { id: 'in-edge',      group: 'intake',    category: '예외 상황',    text: '실패·예외 상황(빈 입력, 오류, 중복 등)은 어떻게 처리해야 하나요?', required: false, type: 'textarea', round: 0, source: 'template' },
+            { id: 'in-admin',     group: 'intake',    category: '관리자 기능',  text: '관리자용 화면이나 운영 기능이 필요한가요?',                    required: false, type: 'text',     round: 0, source: 'template' },
+            { id: 'in-notify',    group: 'intake',    category: '알림/로그',    text: '알림, 로그, 활동 이력 기록이 필요한가요?',                     required: false, type: 'text',     round: 0, source: 'template' },
+            { id: 'in-retention', group: 'intake',    category: '데이터 보관',  text: '데이터를 얼마나 오래 보관해야 하나요?',                        required: false, type: 'text',     round: 0, source: 'template' },
+            { id: 'in-roles',     group: 'intake',    category: '권한/역할',    text: '사용자 권한이나 역할 구분이 필요한가요(관리자/일반 등)?',      required: false, type: 'text',     round: 0, source: 'template' },
+            { id: 'in-seed',      group: 'intake',    category: '초기 콘텐츠',  text: '시작 시 필요한 초기 콘텐츠나 시드 데이터가 있나요?',           required: false, type: 'textarea', round: 0, source: 'template' },
+            { id: 'in-perf',      group: 'intake',    category: '성능 기대치',  text: '응답 속도나 처리량에 대한 기대치가 있나요?',                   required: false, type: 'text',     round: 0, source: 'template' },
+            { id: 'in-i18n',      group: 'intake',    category: '다국어',       text: '다국어나 현지화 지원이 필요한가요?',                          required: false, type: 'text',     round: 0, source: 'template' },
+            { id: 'in-ops',       group: 'readiness', category: '운영/유지보수', text: '배포 후 직접 유지보수하나요, 일회성 산출물인가요?',            required: false, type: 'text',     round: 0, source: 'template' },
+            { id: 'in-postdeploy',group: 'readiness', category: '배포 후 수정',  text: '배포 후에도 자주 수정·업데이트할 계획인가요?',                 required: false, type: 'text',     round: 0, source: 'template' },
+            { id: 'rd-budget',    group: 'readiness', category: '예산 상한',    text: '월 운영 비용이나 초기 개발 예산 상한이 있나요?',               required: false, type: 'text',     round: 0, source: 'template' },
+            { id: 'rd-outage',    group: 'readiness', category: '장애 대응',    text: '특정 외부 서비스가 다운되면 어떻게 대응해야 하나요?',          required: false, type: 'textarea', round: 0, source: 'template' }
+        ];
+
         const READINESS_QUESTION_TEMPLATES = [
             { id: 'rd-install', group: 'readiness', category: '설치/환경',      text: '로컬 OS와 이미 설치된 런타임(Node/Go/Python) 버전은 무엇인가요?', required: false, type: 'textarea', round: 0, source: 'template' },
             { id: 'rd-api',     group: 'readiness', category: 'API/계정/비밀키', text: '연동할 외부 서비스와 API 키/계정을 직접 준비할 수 있나요?',       required: true,  type: 'textarea', round: 0, source: 'template' },
@@ -57,5 +77,6 @@
         }
 
         const ALL_QUESTION_TEMPLATES = INTAKE_QUESTION_TEMPLATES
+            .concat(INTAKE_FOLLOWUP_TEMPLATES)
             .concat(READINESS_QUESTION_TEMPLATES)
             .concat(UIUX_QUESTION_TEMPLATES);

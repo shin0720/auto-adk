@@ -10,7 +10,7 @@
             const seed = (workflowState.intake && workflowState.intake.requirements && workflowState.intake.originalRequest) || '';
             const rootSeed = seed || currentRootRequest();
             const tier = clarityTier(rootSeed);
-            const pool = INTAKE_QUESTION_TEMPLATES.concat(READINESS_QUESTION_TEMPLATES);
+            const pool = INTAKE_QUESTION_TEMPLATES.concat(INTAKE_FOLLOWUP_TEMPLATES).concat(READINESS_QUESTION_TEMPLATES);
             const required = pool.filter(q => q.required);
             const optional = pool.filter(q => !q.required);
             const room = Math.max(0, tier.max - required.length);
