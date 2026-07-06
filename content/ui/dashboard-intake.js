@@ -46,10 +46,10 @@
             const s = workflowState;
             const rows = [];
             rows.push('<h3 class="intake-section-title">기획 인테이크 &amp; 준비 점검</h3>');
-            rows.push(intakeCard('기획 질문 (Intake Questions)', intakeEmpty('아직 질문이 없습니다 — 다음 단계에서 생성됩니다.'), { btn: '질문 생성', badge: s.intake.status }));
-            rows.push(intakeCard('필수 / 선택 질문', intakeEmpty('질문이 생성되면 필수·선택으로 구분해 표시됩니다.')));
-            rows.push(intakeCard('실행 준비 점검 (Readiness)', intakeEmpty('기술 스택·설치·의존성 분류가 여기에 표시됩니다.'), { btn: '분류 실행', badge: s.readiness.status }));
-            rows.push(intakeCard('사용자 준비물 (User Preparation)', intakeEmpty('API 키·계정·도메인 등 사용자가 먼저 준비할 항목이 표시됩니다.'), { btn: '체크리스트 생성' }));
+            const qBody = (typeof renderIntakeQuestions === 'function') ? renderIntakeQuestions() : intakeEmpty('질문 모듈 로드 대기 중…');
+            rows.push(intakeCard('기획 질문 (Intake Questions)', qBody, { badge: s.intake.status }));
+            const upBody = (typeof renderUserPrep === 'function') ? renderUserPrep() : intakeEmpty('준비물 모듈 로드 대기 중…');
+            rows.push(intakeCard('사용자 준비물 (User Preparation)', upBody, { badge: s.readiness.status }));
             rows.push(intakeCard('REAL / STUB / HUMAN_TASK / BLOCKED', '<div class="intake-legend"><span class="intake-tag t-real">REAL</span><span class="intake-tag t-stub">STUB</span><span class="intake-tag t-human">HUMAN_TASK</span><span class="intake-tag t-block">BLOCKED</span><span class="intake-tag t-defer">DEFERRED</span></div>' + intakeEmpty('외부 의존성 분류가 여기에 표시됩니다.')));
             rows.push(intakeCard('디자인 브리프 (Design Brief)', intakeEmpty('스타일 방향·참고 제품·톤이 확정되면 표시됩니다.'), { btn: 'AI 검토' }));
             rows.push(intakeCard('UI/UX 품질 게이트', '<div class="intake-verdict">판정: <span class="intake-badge b-gray">미실행</span></div>', { btn: '게이트 실행' }));

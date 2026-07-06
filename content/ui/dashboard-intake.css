@@ -122,3 +122,78 @@
             .intake-card-head { flex-direction: column; align-items: flex-start; gap: 6px; }
             .intake-head-right { align-self: flex-start; }
         }
+
+        /* PR #25: question / answer / userprep / reference UI */
+        .intake-btn.active {
+            background: var(--accent);
+            color: #fff;
+            cursor: pointer;
+            opacity: 1;
+        }
+        .intake-btn.active:hover { filter: brightness(1.08); }
+
+        .q-block, .up-block { display: flex; flex-direction: column; gap: 8px; }
+        .q-toolbar { display: flex; flex-wrap: wrap; gap: 6px; }
+        .q-subtitle { margin: 8px 0 2px; font-size: 12px; font-weight: 600; color: var(--fg2); }
+
+        .q-progress { display: flex; align-items: center; gap: 8px; }
+        .q-progress-track { flex: 1; height: 6px; background: var(--bg3); border-radius: 999px; overflow: hidden; }
+        .q-progress-fill { height: 100%; background: var(--ok); transition: width .25s ease; }
+        .q-progress-label { font-size: 11px; color: var(--fg2); white-space: nowrap; }
+
+        .q-card {
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 10px;
+        }
+        .q-card.q-missing { border-color: var(--warn); }
+        .q-head { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+        .q-cat { font-size: 11px; font-weight: 600; color: var(--fg); }
+        .q-req { font-size: 9px; font-weight: 700; color: var(--warn); border: 1px solid var(--warn); border-radius: 4px; padding: 0 4px; }
+        .q-opt { font-size: 9px; font-weight: 600; color: var(--fg3); border: 1px solid var(--border); border-radius: 4px; padding: 0 4px; }
+        .q-text { font-size: 12px; color: var(--fg2); margin-bottom: 6px; line-height: 1.5; }
+
+        .q-input {
+            width: 100%;
+            box-sizing: border-box;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--fg);
+            font-size: 12px;
+            font-family: inherit;
+            padding: 6px 8px;
+            resize: vertical;
+        }
+        .q-input:focus { outline: none; border-color: var(--accent); }
+
+        .q-optional { margin-top: 4px; }
+        .q-optional > summary { cursor: pointer; font-size: 11px; color: var(--fg2); user-select: none; padding: 4px 0; }
+
+        .up-note { font-size: 11px; color: var(--fg3); margin: 0; }
+        .up-item, .ref-item { background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; }
+        .up-row { display: flex; gap: 6px; align-items: center; }
+        .up-name { flex: 1; min-width: 0; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--fg); font-size: 12px; padding: 5px 8px; }
+        .up-why { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--fg2); font-size: 11px; padding: 5px 8px; }
+        .up-status { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--fg); font-size: 11px; padding: 4px 6px; }
+        .up-del { background: transparent; border: 1px solid var(--border); border-radius: 6px; color: var(--err); cursor: pointer; padding: 4px 8px; font-size: 11px; }
+
+        .intake-toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            color: var(--fg);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,.4);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s ease, transform .2s ease;
+            z-index: 2100;
+        }
+        .intake-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
