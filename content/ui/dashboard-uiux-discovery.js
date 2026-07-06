@@ -39,13 +39,9 @@
             const empty = (typeof intakeEmpty === 'function') ? intakeEmpty : (m) => `<p class="intake-empty">${m}</p>`;
             const rows = [];
             rows.push('<h3 class="intake-section-title">UI/UX 디자인 디스커버리</h3>');
-            rows.push(card('디자인 질문 라운드', empty('1차 취향 · 2차 레퍼런스 · 3차 재질문 라운드가 표시됩니다.'), { btn: '질문 시작', badge: d.status }));
-            rows.push(card('참고 이미지 (Reference Images)', empty('업로드된 참고 이미지 메타데이터가 표시됩니다. 원본을 복제하지 않고 시각 원칙만 추출합니다.'), { btn: '이미지 첨부' }));
-            rows.push(card('참고 사이트 (Reference Sites)', empty('참고 서비스·URL이 표시됩니다.')));
-            rows.push(card('추출된 시각 원칙 (Visual Principles)', empty('색·타이포·레이아웃·여백 원칙이 추출되면 표시됩니다.')));
-            rows.push(card('디자인 방향 후보 (Visual Directions)', empty('2~4개 방향 후보가 제안되면 표시됩니다. 특정 브랜드 복제가 아닌 영감 방향으로만 기록됩니다.'), { btn: '방향 제안' }));
-            rows.push(card('선택한 방향 (Selected Direction)', empty('아직 선택된 방향이 없습니다.')));
-            rows.push(card('싫어하는 스타일 (Rejected Styles)', empty('피해야 할 스타일이 여기에 기록됩니다.')));
+            const roundsBody = (typeof renderDesignRounds === 'function') ? renderDesignRounds() : empty('디자인 질문 모듈 로드 대기 중…');
+            rows.push(card('디자인 질문 · 레퍼런스 (Design Rounds)', roundsBody, { badge: d.status }));
+            rows.push(card('디자인 방향 후보 (Visual Directions)', empty('2~4개 방향 후보 제안은 다음 PR(Council)에서 자동 생성됩니다. 현재는 수동 선택만 지원됩니다.')));
             rows.push(card('디자인 승인 상태', '<div class="intake-verdict">승인: <span class="intake-badge b-gray">' + d.designApprovalStatus + '</span></div>'));
             rows.push(card('가정 (Assumptions)', empty('AI가 임의로 채운 가정은 [AI-GUESSED] 태그로 표시됩니다.')));
             return rows.join('');
