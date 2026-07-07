@@ -69,7 +69,9 @@
             content.style.whiteSpace = 'normal';
             document.getElementById('panel-title').innerText = '기획 인테이크 · 준비 점검 · 디자인 브리프';
             const uiux = (typeof renderUiuxDiscoveryShell === 'function') ? renderUiuxDiscoveryShell() : '';
-            content.innerHTML = `<div class="intake-shell">${renderIntakeShell()}${uiux}</div>`;
+            const council = (typeof renderPlanningCouncilShell === 'function') ? renderPlanningCouncilShell() : '';
+            const decision = (typeof renderFinalDecision === 'function') ? renderFinalDecision() : '';
+            content.innerHTML = `<div class="intake-shell">${renderIntakeShell()}${uiux}${council}${decision}</div>`;
             document.getElementById('approval-footer').style.display = 'none';
             document.getElementById('forward-footer').style.display = 'none';
             document.getElementById('overlay-panel').style.display = 'flex';

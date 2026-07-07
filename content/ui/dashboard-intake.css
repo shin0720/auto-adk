@@ -197,3 +197,16 @@
             z-index: 2100;
         }
         .intake-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        /* PR #26a: Planning Council + finalDecision */
+        .intake-badge.b-green { background: rgba(46,160,67,.18); color: #4ac26b; border: 1px solid rgba(46,160,67,.4); }
+        .intake-badge.b-red { background: rgba(210,60,60,.18); color: #e06666; border: 1px solid rgba(210,60,60,.4); }
+        .intake-badge.b-amber { background: rgba(210,150,40,.18); color: #e0a566; border: 1px solid rgba(210,150,40,.4); }
+        .council-block, .fd-block { display: flex; flex-direction: column; gap: 6px; }
+        .council-participant { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px; display: flex; flex-direction: column; gap: 5px; }
+        .council-reason { font-size: 11px; color: var(--fg3); margin: 0; }
+        .council-snap { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px; font-size: 11px; color: var(--fg2); }
+        .council-snap p { margin: 2px 0; word-break: break-word; }
+        .fd-banner { border-radius: 8px; padding: 8px 10px; font-size: 11px; line-height: 1.5; }
+        .fd-banner.fd-warn { background: rgba(210,150,40,.12); border: 1px solid rgba(210,150,40,.4); color: var(--fg); }
+        .fd-banner.fd-ok { background: rgba(46,160,67,.12); border: 1px solid rgba(46,160,67,.4); color: var(--fg); }
