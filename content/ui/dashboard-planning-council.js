@@ -130,5 +130,11 @@
                 ${councilListField('권고 (Recommendations)', 'recommendations', '한 줄에 하나씩')}
                 ${councilListField('추가 질문 (Next Questions)', 'nextQuestions', '한 줄에 하나씩')}
             </div>`;
-            return `<h3 class="intake-section-title">Multi-AI Planning Council (수동)</h3>` + card('Planning Council', body, { badge: c.status });
+            // PR #26b: read-only provider prompt preview + manual import section.
+            const prompts = (typeof renderProviderPrompts === 'function') ? renderProviderPrompts() : '';
+            const imports = (typeof renderProviderImport === 'function') ? renderProviderImport() : '';
+            const promptCard = (prompts || imports)
+                ? card('Provider 프롬프트 / 응답 가져오기 (read-only)', prompts + imports)
+                : '';
+            return `<h3 class="intake-section-title">Multi-AI Planning Council (수동)</h3>` + card('Planning Council', body, { badge: c.status }) + promptCard;
         }
