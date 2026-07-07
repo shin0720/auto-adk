@@ -210,3 +210,15 @@
         .fd-banner { border-radius: 8px; padding: 8px 10px; font-size: 11px; line-height: 1.5; }
         .fd-banner.fd-warn { background: rgba(210,150,40,.12); border: 1px solid rgba(210,150,40,.4); color: var(--fg); }
         .fd-banner.fd-ok { background: rgba(46,160,67,.12); border: 1px solid rgba(46,160,67,.4); color: var(--fg); }
+
+        /* PR #26b: provider prompt preview + manual import */
+        .pp-block, .pi-block { display: flex; flex-direction: column; gap: 6px; }
+        .pp-card, .pi-card { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px; display: flex; flex-direction: column; gap: 5px; }
+        .pp-role { font-size: 11px; color: var(--fg3); flex: 1; }
+        .pp-details summary { cursor: pointer; font-size: 12px; color: var(--fg2); }
+        .pp-prompt { font-family: ui-monospace, monospace; font-size: 11px; white-space: pre; overflow-x: auto; }
+        .pi-summary { display: flex; flex-direction: column; gap: 4px; }
+        .pi-field { font-size: 11px; color: var(--fg2); }
+        .pi-field .pi-label { font-weight: 600; color: var(--fg2); margin-right: 4px; }
+        .pi-field ul { margin: 2px 0 2px 16px; padding: 0; }
+        .pi-field p { margin: 2px 0; word-break: break-word; }
