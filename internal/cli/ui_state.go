@@ -37,6 +37,13 @@ type workflowState struct {
 	Maintenance        json.RawMessage `json:"maintenance,omitempty"`
 	Rollback           json.RawMessage `json:"rollback,omitempty"`
 	UiuxDiscovery      json.RawMessage `json:"uiuxDiscovery,omitempty"`
+
+	// Manual Planning Council + finalDecision (PR #26a). Same RawMessage
+	// passthrough pattern: the server only round-trips the client-authored
+	// JSON, never interpreting it. omitempty keeps legacy state.json files
+	// (without these keys) decoding without error.
+	PlanningCouncil json.RawMessage `json:"planningCouncil,omitempty"`
+	FinalDecision   json.RawMessage `json:"finalDecision,omitempty"`
 }
 
 type checklistItem struct {
