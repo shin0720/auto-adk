@@ -51,11 +51,18 @@
         }
 
         function providerPromptCardHtml(p, participant) {
-            const unavail = participant && participant.status === 'unavailable'
-                ? `<p class="council-reason">이 provider는 로컬에서 unavailable입니다. 프롬프트만 제공되며 수동 실행/붙여넣기만 가능합니다 (manualOnly).</p>`
+            // Support reviewers (e.g. Gemini) are optional; their absence never
+            // blocks the Council. Primary reviewers (Claude/Codex) carry no note.
+            const isSupport = typeof PROVIDER_PRIMARY === 'object' && PROVIDER_PRIMARY[p.providerId] === false;
+            const supportTag = isSupport ? `<span class="pp-support">선택 보조</span>` : '';
+            const supportNote = isSupport
+                ? `<p class="council-reason">${escC((typeof PROVIDER_TIER_NOTE === 'object' && PROVIDER_TIER_NOTE[p.providerId]) || '선택 보조 검토자입니다. 응답이 없어도 진행할 수 있습니다.')}</p>`
                 : '';
-            return `<div class="pp-card"><div class="up-row"><strong>${escC(participant ? participant.name : p.providerId)}</strong><span class="pp-role">${escC(p.role)}</span>${ppBadge(p.status)}</div>`
-                + unavail
+            const unavail = participant && participant.status === 'unavailable'
+                ? `<p class="council-reason">이 provider는 로컬에서 unavailable입니다. 프롬프트만 제공되며 수동 실행/붙여넣기만 가능합니다 (manualOnly)${isSupport ? ' — 선택 보조라 진행에는 영향이 없습니다' : ''}.</p>`
+                : '';
+            return `<div class="pp-card"><div class="up-row"><strong>${escC(participant ? participant.name : p.providerId)}</strong><span class="pp-role">${escC(p.role)}</span>${supportTag}${ppBadge(p.status)}</div>`
+                + supportNote + unavail
                 + `<details class="pp-details"><summary>프롬프트 보기 / 복사</summary>`
                 + `<div class="q-toolbar"><button class="intake-btn active" onclick="copyProviderPrompt('${p.providerId}')">복사</button></div>`
                 + `<textarea class="q-input pp-prompt" rows="6" readonly>${escC(p.prompt)}</textarea></details></div>`;

@@ -86,9 +86,16 @@
         // PR #26b: read-only provider prompt roles + contract. Prompts are for
         // the user to run externally and paste back — nothing is executed here.
         const PROVIDER_ROLES = {
-            claude: '제품/기획 리스크',
-            codex:  '기술 구조/구현 리스크',
-            gemini: 'UIUX/사용자 플로우/대안'
+            claude: '제품/기획 리스크 (메인 검토)',
+            codex:  '기술 구조/구현 리스크 (메인 검토)',
+            gemini: '선택 보조 검토 · UIUX/흐름/대안 참고'
+        };
+
+        // Claude/Codex are the primary reviewers; Gemini is an optional support
+        // reviewer whose absence must never block the Council or finalDecision.
+        const PROVIDER_PRIMARY = { claude: true, codex: true, gemini: false };
+        const PROVIDER_TIER_NOTE = {
+            gemini: 'Gemini는 선택 보조 검토자입니다. Claude/Codex 중심 검토를 보조하며, 응답이 없어도 Council 진행과 finalDecision을 막지 않습니다.'
         };
 
         // The contract is prepended to every provider prompt. It forbids any
@@ -125,10 +132,20 @@
                 currentConflicts: c.conflicts || [],
                 currentRisks: c.risks || []
             };
+            // Support reviewers (Gemini) get an extra preamble clarifying that
+            // they are optional and non-blocking. The mutation/auto-approval/
+            // release-ready rules in PROMPT_CONTRACT stay unchanged.
+            const roleLine = PROVIDER_PRIMARY[providerId]
+                ? `당신은 메인 검토자입니다. 검토 관점: ${role} (${providerId}).`
+                : [
+                    `당신은 선택 보조 검토자입니다 (${providerId}). Claude/Codex의 메인 검토를 보조합니다.`,
+                    'UIUX·사용자 흐름·대안 아이디어 중심으로 짧고 실용적인 의견만 주세요.',
+                    '당신은 필수 승인자가 아니며, 이 응답이 없어도 finalDecision은 진행될 수 있습니다.'
+                ].join('\n');
             return [
                 PROMPT_CONTRACT,
                 '',
-                `당신의 검토 관점: ${role} (${providerId}).`,
+                roleLine,
                 '',
                 '## 입력 데이터 (JSON)',
                 JSON.stringify(ctx, null, 2),
