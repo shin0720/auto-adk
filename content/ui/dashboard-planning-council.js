@@ -143,5 +143,8 @@
             const promptCard = (prompts || imports)
                 ? card('Provider 프롬프트 / 응답 가져오기 (read-only)', prompts + imports)
                 : '';
-            return `<h3 class="intake-section-title">Multi-AI Planning Council (수동)</h3>` + card('Planning Council', body, { badge: c.status }) + promptCard;
+            // PR #30: client-only mock execution section. No provider run.
+            const mock = (typeof renderProviderMockExecution === 'function') ? renderProviderMockExecution() : '';
+            const mockCard = mock ? card('모의 실행 (Mock · read-only)', mock) : '';
+            return `<h3 class="intake-section-title">Multi-AI Planning Council (수동)</h3>` + card('Planning Council', body, { badge: c.status }) + promptCard + mockCard;
         }

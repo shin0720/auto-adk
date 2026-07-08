@@ -226,3 +226,8 @@
         .pi-field .pi-label { font-weight: 600; color: var(--fg2); margin-right: 4px; }
         .pi-field ul { margin: 2px 0 2px 16px; padding: 0; }
         .pi-field p { margin: 2px 0; word-break: break-word; }
+        /* PR #30: client-only mock execution (no provider run) */
+        .mock-block { display: flex; flex-direction: column; gap: 6px; }
+        .mock-card { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+        .mock-toolbar { flex-wrap: wrap; gap: 6px; }
+        .mock-fallback { font-size: 11px; color: var(--fg3); margin: 2px 0 0; }
