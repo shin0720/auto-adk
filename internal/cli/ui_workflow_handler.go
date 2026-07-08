@@ -128,17 +128,71 @@ type providerStatus struct {
 	Connected bool   `json:"connected"`
 	Version   string `json:"version,omitempty"`
 	Issue     string `json:"issue,omitempty"`
+
+	// PR #29: additive auth/availability hardening. Backward-compatible —
+	// existing consumers keep reading `connected`. These fields never assert
+	// that auto-run will succeed (no provider is executed to verify auth).
+	AuthState         string `json:"authState,omitempty"`   // available | authRequired | manualOnly | unavailable
+	StatusLabel       string `json:"statusLabel,omitempty"` // short human label
+	StatusDetail      string `json:"statusDetail,omitempty"`
+	IsPrimaryReviewer bool   `json:"isPrimaryReviewer"`
+	IsOptionalSupport bool   `json:"isOptionalSupport"`
+	CanAutoRun        bool   `json:"canAutoRun"`     // always false in PR #29 (no verified execution)
+	CanManualImport   bool   `json:"canManualImport"`
+}
+
+// providerAuthConfigCandidates lists filesystem paths (relative to $HOME) that,
+// if present, suggest the provider has local login/config. Only existence is
+// checked via os.Stat — file CONTENTS and any secret/token values are NEVER read.
+var providerAuthConfigCandidates = map[string][]string{
+	"claude": {".claude", ".claude.json", ".config/claude"},
+	"codex":  {".codex", ".codex.json", ".config/codex"},
+	"gemini": {".gemini", ".gemini.json", ".config/gemini"},
+}
+
+// detectProviderConfig returns true if any known config path exists. It performs
+// stat-only checks and never opens or reads the files.
+func detectProviderConfig(name string) bool {
+	home, err := os.UserHomeDir()
+	if err != nil || home == "" {
+		return false
+	}
+	for _, rel := range providerAuthConfigCandidates[name] {
+		if _, statErr := os.Stat(filepath.Join(home, filepath.FromSlash(rel))); statErr == nil {
+			return true
+		}
+	}
+	return false
 }
 
 func handleProviderStatus(w http.ResponseWriter, r *http.Request) {
 	names := []string{"claude", "codex", "gemini"}
+	primary := map[string]bool{"claude": true, "codex": true}
 	result := make([]providerStatus, 0, len(names))
 	for _, name := range names {
-		st := providerStatus{ID: name}
-		if _, err := exec.LookPath(name); err == nil {
-			st.Connected = true
-		} else {
+		st := providerStatus{ID: name, CanManualImport: true, CanAutoRun: false}
+		st.IsPrimaryReviewer = primary[name]
+		st.IsOptionalSupport = !primary[name]
+		if _, err := exec.LookPath(name); err != nil {
+			// No binary: manual paste still works, auto-run does not.
+			st.Connected = false
+			st.AuthState = "unavailable"
+			st.StatusLabel = "설치 안 됨"
+			st.StatusDetail = "CLI 설치 미감지 · 수동 붙여넣기 가능"
 			st.Issue = "CLI를 찾을 수 없습니다"
+		} else if detectProviderConfig(name) {
+			// Binary + local config detected. This is NOT a guarantee that a
+			// real run would succeed — auto-run stays disabled until verified.
+			st.Connected = true
+			st.AuthState = "available"
+			st.StatusLabel = "설정 감지됨"
+			st.StatusDetail = "설정 파일 감지 · 실행 검증 전"
+		} else {
+			// Binary present but no login/config detected → conservative.
+			st.Connected = true
+			st.AuthState = "authRequired"
+			st.StatusLabel = "로그인 필요"
+			st.StatusDetail = "로그인 설정 미감지 · 수동 사용 권장"
 		}
 		result = append(result, st)
 	}

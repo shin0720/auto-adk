@@ -34,18 +34,25 @@
                 if (res.ok) statuses = await res.json();
             } catch (_) { statuses = null; }
             const unavailable = [];
+            // PR #29: map the hardened authState instead of trusting connected.
+            // authRequired stays usable via manual import (manualOnly, non-blocking);
+            // only a missing binary is treated as unavailable.
+            const authToStatus = { available: 'available', authRequired: 'manualOnly', manualOnly: 'manualOnly', unavailable: 'unavailable' };
             const participants = COUNCIL_PARTICIPANTS.map(p => {
                 let status = 'manualOnly';
                 let issue = '';
                 if (Array.isArray(statuses)) {
                     const st = statuses.find(s => s.id === p.id);
-                    if (st && st.connected) {
+                    if (st && st.authState) {
+                        status = authToStatus[st.authState] || 'manualOnly';
+                        if (status !== 'available') issue = st.statusDetail || st.statusLabel || st.issue || '';
+                    } else if (st && st.connected) {
                         status = 'available';
                     } else {
                         status = 'unavailable';
-                        issue = (st && st.issue) || 'CLI를 찾을 수 없습니다';
-                        unavailable.push({ id: p.id, reason: issue });
+                        issue = (st && (st.statusDetail || st.issue)) || 'CLI를 찾을 수 없습니다';
                     }
+                    if (status === 'unavailable') unavailable.push({ id: p.id, reason: issue });
                 } else {
                     issue = 'provider status를 불러오지 못해 수동 입력만 가능합니다';
                 }

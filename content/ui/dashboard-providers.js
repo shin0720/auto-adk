@@ -139,10 +139,14 @@
                     const dot = document.getElementById('dot-' + provider.id);
                     const label = document.getElementById('provider-' + provider.id);
                     const btn = document.getElementById('btn-' + provider.id);
-                    if (dot) dot.className = 'dot ' + (provider.connected ? 'online' : 'offline');
-                    if (label) label.innerText = provider.connected
-                        ? (provider.version || 'connected') + (lastPromptTokens > 0 ? ` · ~${lastPromptTokens.toLocaleString()}토큰` : '')
-                        : (provider.issue || 'CLI 실행 불가');
+                    // PR #29: reflect the hardened authState — 'connected' alone
+                    // no longer implies the provider can actually run.
+                    const aState = provider.authState || (provider.connected ? 'available' : 'unavailable');
+                    const dotClass = aState === 'available' ? 'online' : aState === 'unavailable' ? 'offline' : 'auth';
+                    if (dot) dot.className = 'dot ' + dotClass;
+                    if (label) label.innerText = provider.statusLabel
+                        ? provider.statusLabel + (provider.connected && lastPromptTokens > 0 ? ` · ~${lastPromptTokens.toLocaleString()}토큰` : '')
+                        : (provider.connected ? (provider.version || 'connected') : (provider.issue || 'CLI 실행 불가'));
                     if (btn) btn.style.display = provider.connected ? 'none' : '';
                 });
             } catch (e) {
@@ -178,8 +182,10 @@
                 const name = document.createElement('span');
                 name.innerText = p.name || p.id;
                 const badge = document.createElement('span');
-                badge.className = 'provider-cb-status ' + (p.connected ? 'online' : 'offline');
-                badge.innerText = p.connected ? '연결됨' : '오프라인';
+                const cbState = p.authState || (p.connected ? 'available' : 'unavailable');
+                badge.className = 'provider-cb-status ' + (cbState === 'available' ? 'online' : cbState === 'unavailable' ? 'offline' : 'auth');
+                badge.innerText = p.statusLabel || (p.connected ? '연결됨' : '오프라인');
+                if (p.isOptionalSupport) badge.title = '선택 보조 · 없어도 진행 가능';
                 row.appendChild(cb);
                 row.appendChild(name);
                 row.appendChild(badge);
