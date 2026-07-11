@@ -40,8 +40,9 @@ func TestJob_SaveAndLoad(t *testing.T) {
 	assert.Equal(t, job.Strategy, loaded.Strategy)
 	assert.Equal(t, job.Providers, loaded.Providers)
 	assert.Equal(t, job.Prompt, loaded.Prompt)
-	assert.Equal(t, job.CreatedAt, loaded.CreatedAt)
-	assert.Equal(t, job.TimeoutAt, loaded.TimeoutAt)
+	// Time round-trips through JSON as UTC; compare the instant, not the location.
+	assert.True(t, job.CreatedAt.Equal(loaded.CreatedAt), "CreatedAt instant mismatch: %v vs %v", job.CreatedAt, loaded.CreatedAt)
+	assert.True(t, job.TimeoutAt.Equal(loaded.TimeoutAt), "TimeoutAt instant mismatch: %v vs %v", job.TimeoutAt, loaded.TimeoutAt)
 	assert.Equal(t, job.Status, loaded.Status)
 }
 
@@ -113,8 +114,8 @@ func TestJob_CollectResults(t *testing.T) {
 
 	// Given: a completed job with results from all providers
 	job := &Job{
-		ID:       "collect-001",
-		Strategy: StrategyConsensus,
+		ID:        "collect-001",
+		Strategy:  StrategyConsensus,
 		Providers: []string{"claude", "codex"},
 		Results: map[string]*ProviderResponse{
 			"claude": {Provider: "claude", Output: "refactored auth"},
