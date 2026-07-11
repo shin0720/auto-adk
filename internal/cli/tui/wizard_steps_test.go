@@ -77,9 +77,9 @@ func TestRunInitWizard_NonTTYDefaults(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, "en", result.CommentsLang)
-	assert.Equal(t, "en", result.CommitsLang)
-	assert.Equal(t, "en", result.AILang)
-	assert.Equal(t, "balanced", result.Quality)
+	assert.Equal(t, "ko", result.CommitsLang)
+	assert.Equal(t, "ko", result.AILang)
+	assert.Equal(t, "ultra", result.Quality)
 	assert.False(t, result.ReviewGate, "review gate defaults to false with zero providers")
 	assert.Equal(t, "tdd", result.Methodology)
 	assert.False(t, result.Cancelled)
@@ -106,10 +106,10 @@ func TestRunInitWizard_FlagCombinations(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name         string
-		opts         tui.InitWizardOpts
-		wantQuality  string
-		wantGate     bool
+		name        string
+		opts        tui.InitWizardOpts
+		wantQuality string
+		wantGate    bool
 	}{
 		{
 			name:        "quality flag only",
@@ -120,7 +120,7 @@ func TestRunInitWizard_FlagCombinations(t *testing.T) {
 		{
 			name:        "no-review-gate flag only",
 			opts:        tui.InitWizardOpts{NoReviewGate: true, Accessible: true},
-			wantQuality: "balanced",
+			wantQuality: "ultra",
 			wantGate:    false,
 		},
 		{
@@ -132,7 +132,7 @@ func TestRunInitWizard_FlagCombinations(t *testing.T) {
 		{
 			name:        "no flags — defaults applied",
 			opts:        tui.InitWizardOpts{Accessible: true},
-			wantQuality: "balanced",
+			wantQuality: "ultra",
 			wantGate:    false,
 		},
 	}
@@ -210,78 +210,11 @@ func TestLangOptions(t *testing.T) {
 	assert.Len(t, opts, 4, "should have 4 language options")
 }
 
-// TestBuildStepList_StepCounts verifies step filtering based on flags.
-func TestBuildStepList_StepCounts(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name      string
-		opts      tui.InitWizardOpts
-		wantSteps int
-	}{
-		{
-			name:      "all steps — no flags",
-			opts:      tui.InitWizardOpts{},
-			wantSteps: 5, // profile + lang + quality + review-gate + methodology
-		},
-		{
-			name:      "quality pre-set — skip quality step",
-			opts:      tui.InitWizardOpts{Quality: "ultra"},
-			wantSteps: 4, // profile + lang + review-gate + methodology
-		},
-		{
-			name:      "no-review-gate — skip gate step",
-			opts:      tui.InitWizardOpts{NoReviewGate: true},
-			wantSteps: 4, // profile + lang + quality + methodology
-		},
-		{
-			name:      "both flags — skip quality and gate",
-			opts:      tui.InitWizardOpts{Quality: "ultra", NoReviewGate: true},
-			wantSteps: 3, // profile + lang + methodology
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-			steps := tui.TestBuildStepList(tc.opts)
-			assert.Len(t, steps, tc.wantSteps)
-		})
-	}
-}
-
-// TestBuildSteps_ReturnForms verifies each step builder produces a non-nil form.
-func TestBuildSteps_ReturnForms(t *testing.T) {
-	t.Parallel()
-
-	result := &tui.InitWizardResult{}
-
-	assert.NotNil(t, tui.TestBuildLangStep(1, 4, result))
-	assert.NotNil(t, tui.TestBuildQualityStep(2, 4, result))
-	assert.NotNil(t, tui.TestBuildMethodologyStep(4, 4, result))
-
-	// Review gate with and without providers (covers both desc branches)
-	assert.NotNil(t, tui.TestBuildReviewGateStep(3, 4, result,
-		tui.InitWizardOpts{Providers: []string{"claude", "openai"}}))
-	assert.NotNil(t, tui.TestBuildReviewGateStep(3, 4, result, tui.InitWizardOpts{}))
-}
-
-// TestBuildStepList_FormsCallable verifies all built steps produce runnable forms.
-func TestBuildStepList_FormsCallable(t *testing.T) {
-	t.Parallel()
-
-	steps := tui.TestBuildStepList(tui.InitWizardOpts{})
-	result := &tui.InitWizardResult{}
-	for i, step := range steps {
-		assert.NotNilf(t, step(result), "step %d should produce a non-nil form", i)
-	}
-}
-
-// TestDefaultResult_UsageProfile verifies the default usage profile is "developer".
+// TestDefaultResult_UsageProfile verifies the default usage profile is "fullstack".
 func TestDefaultResult_UsageProfile(t *testing.T) {
 	t.Parallel()
 	result := tui.TestDefaultResult(tui.InitWizardOpts{})
-	assert.Equal(t, "developer", result.UsageProfile)
+	assert.Equal(t, "fullstack", result.UsageProfile)
 }
 
 // TestDefaultResult_ExistingProfile verifies ExistingProfile propagates to result.

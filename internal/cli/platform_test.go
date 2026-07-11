@@ -106,14 +106,14 @@ func TestPlatformAddCodex_UpdatesOrchestraProviders(t *testing.T) {
 	addCmd.SetArgs([]string{"platform", "add", "codex", "--dir", dir})
 	require.NoError(t, addCmd.Execute())
 
-	// Then: orchestra config must include codex provider with PromptViaArgs=false
+	// Then: orchestra config must include codex provider with PromptViaArgs=true
 	cfg, err := loadConfigFromDir(dir)
 	require.NoError(t, err)
 
 	codexProvider, ok := cfg.Orchestra.Providers["codex"]
 	require.True(t, ok, "codex must exist in orchestra.providers after platform add codex")
-	assert.False(t, codexProvider.PromptViaArgs,
-		"codex provider must have PromptViaArgs=false after platform add codex")
+	assert.True(t, codexProvider.PromptViaArgs,
+		"codex provider must have PromptViaArgs=true after platform add codex")
 
 	// Then: all orchestra commands must include codex
 	for _, cmdName := range []string{"review", "plan", "secure"} {
