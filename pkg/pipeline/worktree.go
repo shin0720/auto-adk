@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -21,8 +20,8 @@ const (
 
 // WorktreeManager manages isolated git worktrees for parallel pipeline execution.
 type WorktreeManager struct {
-	mu       sync.Mutex
-	paths    map[string]struct{}
+	mu        sync.Mutex
+	paths     map[string]struct{}
 	isGitRepo bool
 }
 
@@ -205,10 +204,4 @@ func isLockError(output string) bool {
 		}
 	}
 	return false
-}
-
-// worktreePath returns the absolute path that would be used for a worktree.
-// Exported for testing convenience.
-func worktreePath(base, suffix string) string {
-	return filepath.Join(base, suffix)
 }

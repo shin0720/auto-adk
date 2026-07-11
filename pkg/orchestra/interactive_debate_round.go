@@ -125,9 +125,6 @@ func executeRound(ctx context.Context, cfg OrchestraConfig, panes []paneInfo, ho
 		}
 	}
 
-	// Re-capture baselines AFTER prompts are sent to avoid false completion detection.
-	baselines = captureBaselines(ctx, cfg.Terminal, panes)
-
 	// @AX:NOTE: [AUTO] REQ-3 configurable initial delay — AI processing head start before polling
 	debateDelay := cfg.InitialDelay
 	if debateDelay <= 0 {

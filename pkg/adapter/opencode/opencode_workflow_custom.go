@@ -10,15 +10,6 @@ type customWorkflowBody struct {
 	skill  string
 }
 
-func renderCustomWorkflowCommand(spec workflowSpec) (string, bool) {
-	body, ok := customWorkflowBodies(spec)
-	if !ok {
-		return "", false
-	}
-	frontmatter := fmt.Sprintf("description: %q\nagent: build", spec.Description)
-	return buildMarkdown(frontmatter, commandArgumentNote(spec.Name)+"\n"+body.prompt), true
-}
-
 func renderCustomWorkflowSkill(spec workflowSpec) (string, bool) {
 	body, ok := customWorkflowBodies(spec)
 	if !ok {

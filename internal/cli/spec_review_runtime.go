@@ -1,8 +1,6 @@
 package cli
 
 import (
-	"context"
-
 	"github.com/shin0720/auto-adk/pkg/orchestra"
 	"github.com/shin0720/auto-adk/pkg/spec"
 )
@@ -21,5 +19,3 @@ func syncReviewedSpecStatus(specDir string, result *spec.ReviewResult) error {
 	}
 	return spec.UpdateStatus(specDir, "approved")
 }
-
-type specReviewRunner func(context.Context, orchestra.OrchestraConfig) (*orchestra.OrchestraResult, error)

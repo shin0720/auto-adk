@@ -23,8 +23,6 @@ const (
 	openAIClientID = "app_EMoamEEZ73f0CkXaXp7hrann"
 	openAIScopes   = "openid profile email offline_access api.connectors.read api.connectors.invoke"
 	openAIPort     = 1455
-	// @AX:NOTE [AUTO] @AX:REASON: 5-minute timeout for OAuth flow — user must complete browser auth within this window
-	oauthTimeout = 5 * time.Minute
 )
 
 // DefaultClientID returns the OpenAI PKCE client ID.

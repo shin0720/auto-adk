@@ -35,27 +35,27 @@ func findDirsWithSuffix(dir, suffix string) []string {
 
 func inferDirDescription(name string) string {
 	descriptions := map[string]string{
-		"cmd":       "CLI entry points",
-		"pkg":       "Public reusable libraries",
-		"internal":  "Private implementation packages",
-		"api":       "API definitions and handlers",
-		"web":       "Web server and routes",
-		"src":       "Source code",
-		"lib":       "Library code",
-		"test":      "Test files",
-		"tests":     "Test files",
-		"docs":      "Documentation",
-		"scripts":   "Build and utility scripts",
-		"config":    "Configuration files",
-		"templates": "Template files",
-		"assets":    "Static assets",
-		"bin":       "Binary output",
-		"build":     "Build output",
-		"dist":      "Distribution output",
-		"vendor":    "Vendored dependencies",
+		"cmd":        "CLI entry points",
+		"pkg":        "Public reusable libraries",
+		"internal":   "Private implementation packages",
+		"api":        "API definitions and handlers",
+		"web":        "Web server and routes",
+		"src":        "Source code",
+		"lib":        "Library code",
+		"test":       "Test files",
+		"tests":      "Test files",
+		"docs":       "Documentation",
+		"scripts":    "Build and utility scripts",
+		"config":     "Configuration files",
+		"templates":  "Template files",
+		"assets":     "Static assets",
+		"bin":        "Binary output",
+		"build":      "Build output",
+		"dist":       "Distribution output",
+		"vendor":     "Vendored dependencies",
 		"migrations": "Database migrations",
-		"proto":     "Protocol buffer definitions",
-		"content":   "Content assets",
+		"proto":      "Protocol buffer definitions",
+		"content":    "Content assets",
 	}
 	if desc, ok := descriptions[name]; ok {
 		return desc
@@ -79,23 +79,6 @@ func isIgnoredDir(name string) bool {
 		"AppData":      true, // Skip AppData noise
 	}
 	return ignored[name]
-}
-
-func isBinaryFile(name string) bool {
-	ext := strings.ToLower(filepath.Ext(name))
-	binExts := map[string]bool{
-		".lnk":  true,
-		".exe":  true,
-		".bin":  true,
-		".dll":  true,
-		".so":   true,
-		".dylib": true,
-		".pyc":  true,
-		".zip":  true,
-		".7z":   true,
-		".rar":  true,
-	}
-	return binExts[ext]
 }
 
 func fileExists(path string) bool {
