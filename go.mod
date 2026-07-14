@@ -2,6 +2,8 @@ module github.com/shin0720/auto-adk
 
 go 1.26
 
+toolchain go1.26.5
+
 require (
 	github.com/cespare/xxhash/v2 v2.3.0
 	github.com/charmbracelet/bubbletea v1.3.6
