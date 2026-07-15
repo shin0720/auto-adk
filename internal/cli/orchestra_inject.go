@@ -60,9 +60,6 @@ func runOrchestraInject(cmd *cobra.Command, sessionID, provider, prompt string) 
 	}
 
 	term := terminal.DetectTerminal()
-	if term == nil {
-		return fmt.Errorf("no terminal multiplexer detected — inject requires cmux or tmux")
-	}
 
 	ctx := cmd.Context()
 
