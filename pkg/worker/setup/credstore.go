@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"sync"
 )
 
 // CredentialStore is the interface for credential persistence backends.
@@ -44,6 +45,31 @@ func WithWarningFunc(fn func(string)) Option {
 	}
 }
 
+var (
+	keychainProbeOnce      sync.Once
+	keychainProbeAvailable bool
+)
+
+// probeKeychainAvailable reports whether the OS keychain accepts writes.
+//
+// The probe runs at most once per process. The keychain is a process-wide
+// shared resource, so probing it on every store construction lets concurrent
+// callers write to it at the same time.
+func probeKeychainAvailable() bool {
+	keychainProbeOnce.Do(func() {
+		ks := newKeychainStore()
+		const probeKey = "autopus-probe"
+		if err := ks.Save(probeKey, "probe"); err != nil {
+			return
+		}
+		// A failed cleanup does not make the keychain unavailable: the write
+		// above already proved it accepts credentials.
+		_ = ks.Delete(probeKey)
+		keychainProbeAvailable = true
+	})
+	return keychainProbeAvailable
+}
+
 // NewCredentialStore creates a CredentialStore, trying keychain first.
 // Falls back to encrypted file if keychain is unavailable or force-file is set.
 // Returns the store and a non-empty warning string when falling back.
@@ -60,15 +86,10 @@ func NewCredentialStore(opts ...Option) (CredentialStore, string) {
 		slog.Warn(msg)
 	}
 
-	if !o.forceFile {
+	if !o.forceFile && probeKeychainAvailable() {
 		ks := newKeychainStore()
-		// Probe keychain availability with a test write/delete.
-		testKey := "autopus-probe"
-		if err := ks.Save(testKey, "probe"); err == nil {
-			_ = ks.Delete(testKey)
-			migratePlaintextCredentials(ks, warn)
-			return ks, ""
-		}
+		migratePlaintextCredentials(ks, warn)
+		return ks, ""
 	}
 
 	// Fallback to encrypted file backend.
