@@ -50,9 +50,6 @@ func newOrchestraCollectCmd() *cobra.Command {
 			}
 
 			term := terminal.DetectTerminal()
-			if term == nil {
-				return fmt.Errorf("no terminal multiplexer detected — collect requires cmux or tmux")
-			}
 
 			ctx := cmd.Context()
 			var responses []CollectProviderResult

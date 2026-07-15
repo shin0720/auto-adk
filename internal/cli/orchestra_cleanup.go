@@ -50,12 +50,10 @@ func runOrchestraCleanup(ctx context.Context, sessionID string) error {
 	// Kill each pane referenced by the session.
 	killed := 0
 	for provider, paneID := range session.Panes {
-		if term != nil {
-			if killErr := term.Close(ctx, paneID); killErr != nil {
-				fmt.Fprintf(os.Stderr, "[cleanup] %s pane %s kill failed: %v\n", provider, paneID, killErr)
-			} else {
-				killed++
-			}
+		if killErr := term.Close(ctx, paneID); killErr != nil {
+			fmt.Fprintf(os.Stderr, "[cleanup] %s pane %s kill failed: %v\n", provider, paneID, killErr)
+		} else {
+			killed++
 		}
 	}
 
