@@ -3,6 +3,7 @@ package cli
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -39,6 +40,26 @@ func TestBuildReadOnlyProviderOptions_NoDangerousFlags(t *testing.T) {
 				if a == f {
 					t.Fatalf("provider %s emitted dangerous flag %s", p, a)
 				}
+			}
+		}
+	}
+}
+
+func TestBuildReadOnlyProviderOptions_PromptGoesToStdinNotArgs(t *testing.T) {
+	const prompt = "SECRET-LOOKING-PROMPT-TEXT"
+	tempCwd := t.TempDir()
+	for _, p := range []string{"claude", "codex", "gemini"} {
+		opts, err := buildReadOnlyProviderOptions(p, prompt, tempCwd, "")
+		if err != nil {
+			t.Fatalf("provider %s: %v", p, err)
+		}
+		if opts.Stdin != prompt {
+			t.Fatalf("provider %s: Stdin = %q, want the prompt", p, opts.Stdin)
+		}
+		// Args reach the process table; the prompt must never be there.
+		for _, a := range opts.Args {
+			if strings.Contains(a, prompt) {
+				t.Fatalf("provider %s: prompt leaked into args %v", p, opts.Args)
 			}
 		}
 	}

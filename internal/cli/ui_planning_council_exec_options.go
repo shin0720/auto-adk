@@ -16,6 +16,10 @@ type readOnlyProviderOptions struct {
 	// Cwd is the isolated temp workspace directory. It must be non-empty and must
 	// not be (or be inside) the repo root; the builder enforces this.
 	Cwd string
+	// Stdin carries the prompt. The prompt is deliberately NOT placed in Args:
+	// process arguments are world-readable (e.g. `ps`) and are bounded by an
+	// OS-specific length limit, neither of which is acceptable for prompt text.
+	Stdin string
 }
 
 // dangerousProviderFlags enumerates flags that grant unconfirmed file mutation or
@@ -32,9 +36,10 @@ var dangerousProviderFlags = []string{
 }
 
 // buildReadOnlyProviderOptions returns non-dangerous invocation options for a
-// known provider, pinned to the given isolated temp cwd. It returns an error for
-// an unknown provider, an empty prompt, or a cwd that is empty or equal to / inside
-// the repo root. It does NOT execute anything.
+// known provider, pinned to the given isolated temp cwd. The prompt is carried in
+// Stdin, never in Args. It returns an error for an unknown provider, an empty
+// prompt, or a cwd that is empty or equal to / inside the repo root. It does NOT
+// execute anything.
 func buildReadOnlyProviderOptions(provider, prompt, tempCwd, repoRoot string) (readOnlyProviderOptions, error) {
 	if strings.TrimSpace(prompt) == "" {
 		return readOnlyProviderOptions{}, fmt.Errorf("read-only provider options require a non-empty prompt")
@@ -69,7 +74,7 @@ func buildReadOnlyProviderOptions(provider, prompt, tempCwd, repoRoot string) (r
 		return readOnlyProviderOptions{}, fmt.Errorf("internal: read-only args contained dangerous flag %s", flag)
 	}
 
-	return readOnlyProviderOptions{Provider: provider, Args: args, Cwd: tempCwd}, nil
+	return readOnlyProviderOptions{Provider: provider, Args: args, Cwd: tempCwd, Stdin: prompt}, nil
 }
 
 // containsDangerousFlag reports the first dangerous flag found in args, if any.
