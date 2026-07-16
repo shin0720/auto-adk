@@ -78,7 +78,8 @@ const councilRunBody = `{"provider":"claude","prompt":"analyze"}`
 // actual provider process executed.
 func TestCouncilRunEndpoint_FakeSuccess(t *testing.T) {
 	runner := &recordingCouncilRunner{inner: fakeCouncilProviderRunner{status: councilRunCompleted, rawText: "verdict: ok"}}
-	h := newPlanningCouncilProviderRunHandler(councilEndpointDeps(t, runner))
+	deps := councilEndpointDeps(t, runner)
+	h := newPlanningCouncilProviderRunHandler(deps)
 
 	rec, resp := councilRunPost(t, h, councilRunBody)
 
@@ -121,12 +122,19 @@ func TestCouncilRunEndpoint_FakeSuccess(t *testing.T) {
 			t.Fatalf("prompt leaked into args: %v", runner.lastOpts.Args)
 		}
 	}
-	// The harness must pin the run to an isolated temp cwd outside the repo.
+	// The harness must pin the run to an isolated temp cwd outside the guarded
+	// repo. Compare against the ACTUAL repo root the handler was given: an
+	// unrelated fresh temp dir would make this assertion pass vacuously.
 	if runner.lastOpts.Cwd == "" {
-		t.Error("cwd must be set to the isolated temp workspace")
+		t.Fatal("cwd must be set to the isolated temp workspace")
 	}
-	if inside, err := sameOrInside(runner.lastOpts.Cwd, t.TempDir()); err == nil && inside {
-		t.Error("cwd unexpectedly resolved inside the test repo tree")
+	inside, err := sameOrInside(runner.lastOpts.Cwd, deps.RepoRoot)
+	if err != nil {
+		t.Fatalf("sameOrInside(%q, %q): %v", runner.lastOpts.Cwd, deps.RepoRoot, err)
+	}
+	if inside {
+		t.Errorf("cwd %q must not be the guarded repo %q or inside it",
+			runner.lastOpts.Cwd, deps.RepoRoot)
 	}
 }
 

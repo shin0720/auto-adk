@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/fs"
 	"net/http"
 	"os"
 	"os/exec"
@@ -55,28 +54,10 @@ func newUICmd() *cobra.Command {
 			addr := fmt.Sprintf("localhost:%d", port)
 			fmt.Printf("🐙 Autopus Studio v5.0 시작 중... http://%s\n", addr)
 
-			http.HandleFunc("/api/workspace/change", handleWorkspaceChange)
-			http.HandleFunc("/api/workflow/state", handleWorkflowState)
-			http.HandleFunc("/api/workflow/stream", handleWorkflowStream)
-			http.HandleFunc("/api/workflow/event", handleWorkflowEvent)
-			http.HandleFunc("/api/workflow/run", handleWorkflowRun)
-			http.HandleFunc("/api/workflow/cancel", handleWorkflowCancel)
-			http.HandleFunc("/api/workflow/running", handleWorkflowRunning)
-			http.HandleFunc("/api/workspace/list", handleWorkspaceList)
-			http.HandleFunc("/api/files/list", handleFileList)
-			http.HandleFunc("/api/files/read", handleFileRead)
-			http.HandleFunc("/api/files/write", handleFileWrite)
-			http.HandleFunc("/api/files/upload", handleFileUpload)
-			http.HandleFunc("/api/providers/status", handleProviderStatus)
-			http.HandleFunc("/api/providers/connect", handleProviderConnect)
-			http.HandleFunc("/api/shutdown", handleShutdown)
-
-			// Serve split static assets (CSS/JS) from the embedded ui directory.
-			// Registered before the root handler so /ui/* routes resolve first.
-			if staticFS, err := fs.Sub(content.FS, "ui"); err == nil {
-				http.Handle("/ui/", http.StripPrefix("/ui/", http.FileServer(http.FS(staticFS))))
-			}
-			http.HandleFunc("/", handleDashboard)
+			// A dedicated mux (rather than http.DefaultServeMux) keeps the route
+			// table constructible from tests; see registerUIRoutes.
+			mux := http.NewServeMux()
+			registerUIRoutes(mux, root)
 
 			// Skip auto-opening the browser in audit/CI runs. Either the
 			// --no-browser flag or a non-empty AUTOPUS_NO_BROWSER env var
@@ -87,7 +68,7 @@ func newUICmd() *cobra.Command {
 			} else {
 				go openBrowser("http://" + addr)
 			}
-			return http.ListenAndServe(addr, nil)
+			return http.ListenAndServe(addr, mux)
 		},
 	}
 
