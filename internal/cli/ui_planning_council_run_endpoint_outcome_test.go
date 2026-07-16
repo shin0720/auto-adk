@@ -2,6 +2,7 @@ package cli
 
 import (
 	"errors"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -51,6 +52,10 @@ func TestCouncilRunEndpoint_CleanupFailed(t *testing.T) {
 	deps := councilEndpointDeps(t, runner)
 	deps.cleanupOverride = func() error { return errors.New("temp dir busy") }
 	h := newPlanningCouncilProviderRunHandler(deps)
+
+	// The override skips the real removal; clean up the leaked temp workspace
+	// ourselves using the cwd the runner was handed.
+	t.Cleanup(func() { _ = os.RemoveAll(runner.lastOpts.Cwd) })
 
 	_, resp := councilRunPost(t, h, councilRunBody)
 
