@@ -37,6 +37,10 @@ type councilProviderRunResult struct {
 	FinishedAt string
 	Error      string
 	Truncated  bool
+	// ProcessStarted reports whether an actual provider process was launched. The
+	// fake runner leaves it false; the real runner sets it true once it reaches
+	// exec, so the endpoint can report Executed honestly instead of hard-coding it.
+	ProcessStarted bool
 }
 
 // councilProviderRunner abstracts "run this read-only invocation and return raw

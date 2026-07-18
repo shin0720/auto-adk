@@ -54,9 +54,10 @@ const councilStderrContextBytes = 2048
 // returns a nil error and reports the outcome through result.Status.
 //
 // Status mapping: exit 0 -> completed, non-zero exit -> failed, deadline ->
-// timeout, cancel -> canceled, binary not found -> unavailable. It never returns
-// authRequired: deciding that a provider needs login requires an auth-detection
-// layer that this PR deliberately does not implement.
+// timeout, cancel -> canceled, binary not found -> unavailable. A non-zero exit
+// whose output strongly matches an auth-failure pattern maps to authRequired
+// instead of failed; anything ambiguous stays failed (see
+// classifyCouncilProviderAuthFailure).
 func (r realCouncilProviderRunner) Run(ctx context.Context, opts readOnlyProviderOptions) (councilProviderRunResult, error) {
 	start := time.Now()
 	res := councilProviderRunResult{ProviderID: opts.Provider, StartedAt: start.UTC().Format(time.RFC3339)}
@@ -113,6 +114,9 @@ func (r realCouncilProviderRunner) Run(ctx context.Context, opts readOnlyProvide
 	cmd.Stdout = outW
 	cmd.Stderr = errW
 
+	// Past pre-flight and lookPath: a provider process is being launched, so the
+	// run counts as executed even if it exits non-zero, times out or is canceled.
+	res.ProcessStarted = true
 	runErr := cmd.Run()
 
 	// Preserve output on every path: a timed-out or failed provider may still have
@@ -129,8 +133,16 @@ func (r realCouncilProviderRunner) Run(ctx context.Context, opts readOnlyProvide
 		var exitErr *exec.ExitError
 		if errors.As(runErr, &exitErr) {
 			res.ExitCode = exitErr.ExitCode()
+			// A non-zero exit MAY mean the provider is not logged in. Classify
+			// conservatively from the output already collected; an ambiguous
+			// failure stays failed rather than becoming a false authRequired.
+			if ok, reason := classifyCouncilProviderAuthFailure(opts.Provider, res.RawText, errW.String(), res.ExitCode); ok {
+				res.Error = reason
+				return finish(councilRunAuthRequired)
+			}
 		} else {
-			// Failed to start (bad cwd, permissions, ...): no exit code exists.
+			// Failed to start (bad cwd, permissions, ...): no exit code exists, and a
+			// start failure is not an auth signal.
 			res.ExitCode = -1
 		}
 		res.Error = stderrContext(errW.String(), runErr)

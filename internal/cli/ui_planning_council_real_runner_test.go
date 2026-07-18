@@ -186,15 +186,13 @@ func TestRealCouncilProviderRunner_StartFailureHasNoExitCode(t *testing.T) {
 	}
 }
 
-func TestRealCouncilProviderRunner_NeverReportsAuthRequired(t *testing.T) {
-	// Auth detection is out of scope: an auth-shaped exit is just a failure.
+func TestRealCouncilProviderRunner_AuthShapedExitIsAuthRequired(t *testing.T) {
+	// A strongly auth-shaped exit is now classified as authRequired (see
+	// classifyCouncilProviderAuthFailure); an ambiguous one still stays failed.
 	r, _ := newHelperRunner(t, "", "COUNCIL_HELPER_STDERR=not logged in", "COUNCIL_HELPER_EXIT=1")
 	res, _ := r.Run(context.Background(), mustOpts(t, "claude", "p", t.TempDir()))
 
-	if res.Status == councilRunAuthRequired {
-		t.Fatalf("runner must not infer authRequired in this PR")
-	}
-	if res.Status != councilRunFailed {
-		t.Fatalf("status = %q, want failed", res.Status)
+	if res.Status != councilRunAuthRequired {
+		t.Fatalf("status = %q, want authRequired", res.Status)
 	}
 }

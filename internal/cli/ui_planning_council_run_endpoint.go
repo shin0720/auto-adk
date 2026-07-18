@@ -17,17 +17,19 @@ const planningCouncilProviderRunPath = "/api/planning-council/providers/run"
 
 // Endpoint-level statuses that no runner can produce. The remaining statuses in
 // the response enum are forwarded from the runner (completed/failed/timeout/
-// canceled/unavailable) or the harness (scopeViolation/cleanupFailed).
+// canceled/unavailable/authRequired) or the harness (scopeViolation/cleanupFailed).
 const (
 	councilEndpointDisabled       = "disabled"
 	councilEndpointInvalidRequest = "invalidRequest"
 )
 
-// Gate values. "fake" is the only enabled value in this PR: a gated REAL runner is
-// a later change, and nothing here constructs realCouncilProviderRunner.
+// Gate values. Production registration is still Runner==nil, so only "disabled" is
+// reachable in production; "fake" and "real" are selected by deps.GateLabel when a
+// runner is injected, so the response names the runner kind honestly.
 const (
 	councilGateDisabled = "disabled"
 	councilGateFake     = "fake"
+	councilGateReal     = "real"
 )
 
 // Request limits. The prompt cap bounds request memory; the timeout bounds keep a
@@ -54,8 +56,9 @@ type planningCouncilProviderRunRequest struct {
 type planningCouncilProviderRunResponse struct {
 	Status     string `json:"status"`
 	ProviderID string `json:"providerId,omitempty"`
-	// Executed reports whether an actual provider process ran. It is always false
-	// in this PR: only injected fake runners are ever used.
+	// Executed reports whether an actual provider process was launched. It tracks
+	// the runner result, so a fake run (and the disabled production route) reports
+	// false while a real run would report true.
 	Executed bool   `json:"executed"`
 	Gate     string `json:"gate"`
 
@@ -84,6 +87,10 @@ type planningCouncilProviderRunEndpointDeps struct {
 	// handler can never fall back to constructing a real one.
 	Runner  councilProviderRunner
 	Enabled bool
+	// GateLabel names the injected runner kind ("fake" or "real") for the enabled
+	// path. Empty defaults to "fake", so a real runner must opt in explicitly and a
+	// fake run can never masquerade as real.
+	GateLabel string
 	// AuthStateHint supplies the advisory hint; nil omits the field.
 	AuthStateHint  func(provider string) string
 	TimeoutDefault time.Duration
@@ -170,9 +177,11 @@ func runCouncilProviderEndpoint(
 	})
 
 	resp := planningCouncilProviderRunResponse{
-		ProviderID:         req.Provider,
-		Executed:           false,
-		Gate:               councilGateFake,
+		ProviderID: req.Provider,
+		// Report the truth, not a constant: Executed reflects whether a process was
+		// actually launched, and Gate names the injected runner kind.
+		Executed:           runRes.ProcessStarted,
+		Gate:               councilRunGate(deps),
 		RawText:            runRes.RawText,
 		Truncated:          runRes.Truncated,
 		ExitCode:           runRes.ExitCode,
@@ -191,45 +200,6 @@ func runCouncilProviderEndpoint(
 		resp.Error = hres.Error
 	}
 	return resp
-}
-
-// councilRunEndpointStatus resolves the reported status. A harness verdict about
-// the real tree (scopeViolation) or teardown (cleanupFailed) outranks the runner:
-// a mutated repo must never be reported as a clean success.
-func councilRunEndpointStatus(
-	hres councilReadOnlyHarnessResult,
-	runRes councilProviderRunResult,
-	runErr error,
-) string {
-	switch hres.Status {
-	case councilHarnessScopeViolation:
-		return councilHarnessScopeViolation
-	case councilHarnessCleanupFailed:
-		return councilHarnessCleanupFailed
-	case councilHarnessInvalidOptions, councilHarnessFakeFailed:
-		// Option-build, snapshot or transport failures: nothing usable ran.
-		return councilRunFailed
-	}
-	if runErr != nil {
-		return councilRunFailed
-	}
-	switch runRes.Status {
-	case councilRunCompleted, councilRunFailed, councilRunTimeout, councilRunCanceled, councilRunUnavailable:
-		return runRes.Status
-	default:
-		// Covers authRequired and any unset status: this endpoint deliberately does
-		// not infer or expose an auth verdict, so it degrades to failed.
-		return councilRunFailed
-	}
-}
-
-// councilRunGate reports the active gate. A nil Runner reads as disabled so the
-// handler never has a reason to build one itself.
-func councilRunGate(deps planningCouncilProviderRunEndpointDeps) string {
-	if !deps.Enabled || deps.Runner == nil {
-		return councilGateDisabled
-	}
-	return councilGateFake
 }
 
 // validateCouncilRunRequest returns the effective timeout, or a non-empty message

@@ -80,19 +80,21 @@ func TestCouncilRunEndpoint_TransportErrorFails(t *testing.T) {
 	}
 }
 
-// The endpoint must never infer or expose an auth verdict: a runner claiming
-// authRequired degrades to failed, and authRequired is not part of the contract.
-func TestCouncilRunEndpoint_NeverReportsAuthRequired(t *testing.T) {
+// authRequired is forwarded, not inferred: when the runner reports it (having
+// derived it from the provider's own output), the endpoint surfaces it rather than
+// flattening every failure into "failed". The endpoint still never invents it.
+func TestCouncilRunEndpoint_ForwardsAuthRequired(t *testing.T) {
 	runner := &recordingCouncilRunner{inner: fakeCouncilProviderRunner{status: councilRunAuthRequired}}
 	h := newPlanningCouncilProviderRunHandler(councilEndpointDeps(t, runner))
 
 	_, resp := councilRunPost(t, h, councilRunBody)
 
-	if resp.Status == councilRunAuthRequired {
-		t.Fatal("endpoint must not return authRequired")
+	if resp.Status != councilRunAuthRequired {
+		t.Errorf("status = %q, want authRequired to be forwarded from the runner", resp.Status)
 	}
-	if resp.Status != councilRunFailed {
-		t.Errorf("status = %q, want failed", resp.Status)
+	// A forwarded authRequired still touches no provider process from the fake.
+	if resp.Executed {
+		t.Error("executed must stay false for a fake runner")
 	}
 }
 
