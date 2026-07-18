@@ -1,9 +1,19 @@
 package cli
 
 import (
+	"context"
 	"net/http"
 	"testing"
 )
+
+// processStartedRunner is a fake that reports a launched process WITHOUT running
+// one, so the endpoint's Executed plumbing can be exercised with no provider
+// binary. It stands in for a real runner's ProcessStarted signal only.
+type processStartedRunner struct{}
+
+func (processStartedRunner) Run(context.Context, readOnlyProviderOptions) (councilProviderRunResult, error) {
+	return councilProviderRunResult{Status: councilRunCompleted, ProcessStarted: true}, nil
+}
 
 // The gate defaults to disabled: a zero-value deps struct must never reach the
 // runner or the harness.
@@ -75,9 +85,9 @@ func TestCouncilRunEndpoint_DisabledGateReportedOnInvalidRequest(t *testing.T) {
 	}
 }
 
-// An enabled gate reports "fake": this PR has no real gate value, so no response
-// can ever claim a real provider ran.
-func TestCouncilRunEndpoint_EnabledGateIsFake(t *testing.T) {
+// An enabled gate with no explicit label defaults to "fake", and a fake run
+// reports executed false because no process was launched.
+func TestCouncilRunEndpoint_EnabledGateDefaultsToFake(t *testing.T) {
 	runner := &recordingCouncilRunner{inner: fakeCouncilProviderRunner{status: councilRunCompleted, rawText: "ok"}}
 	h := newPlanningCouncilProviderRunHandler(councilEndpointDeps(t, runner))
 
@@ -87,6 +97,40 @@ func TestCouncilRunEndpoint_EnabledGateIsFake(t *testing.T) {
 		t.Errorf("gate = %q, want fake", resp.Gate)
 	}
 	if resp.Executed {
-		t.Error("executed must be false even on the enabled path")
+		t.Error("executed must be false for a fake runner: no process launched")
+	}
+}
+
+// Gate is no longer hard-coded: an explicit GateLabel flows through to the
+// response, so a future real wiring reports "real" instead of masquerading as fake.
+func TestCouncilRunEndpoint_GateLabelIsHonoured(t *testing.T) {
+	runner := &recordingCouncilRunner{inner: fakeCouncilProviderRunner{status: councilRunCompleted, rawText: "ok"}}
+	deps := councilEndpointDeps(t, runner)
+	deps.GateLabel = councilGateReal
+	h := newPlanningCouncilProviderRunHandler(deps)
+
+	_, resp := councilRunPost(t, h, councilRunBody)
+
+	if resp.Gate != councilGateReal {
+		t.Errorf("gate = %q, want real", resp.Gate)
+	}
+}
+
+// Executed is no longer hard-coded false: a runner reporting ProcessStarted flows
+// through to the response, so a real launch would be reported honestly. This uses
+// a fake stand-in that sets ProcessStarted — no actual provider binary runs.
+func TestCouncilRunEndpoint_ExecutedReflectsProcessStarted(t *testing.T) {
+	runner := &processStartedRunner{}
+	deps := councilEndpointDeps(t, runner)
+	deps.GateLabel = councilGateReal
+	h := newPlanningCouncilProviderRunHandler(deps)
+
+	_, resp := councilRunPost(t, h, councilRunBody)
+
+	if !resp.Executed {
+		t.Error("executed must be true when the runner reports a launched process")
+	}
+	if resp.Gate != councilGateReal {
+		t.Errorf("gate = %q, want real", resp.Gate)
 	}
 }
