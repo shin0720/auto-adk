@@ -3,6 +3,7 @@ package cli
 import (
 	"io/fs"
 	"net/http"
+	"os"
 
 	"github.com/shin0720/auto-adk/content"
 )
@@ -43,22 +44,20 @@ func registerUIRoutes(mux *http.ServeMux, root string) {
 }
 
 // registerPlanningCouncilRoutes registers the Planning Council provider run
-// endpoint in a HARD-DISABLED state.
+// endpoint. It is DISABLED by default: buildPlanningCouncilProviderRunDeps only
+// wires a real runner when AUTOPUS_PLANNING_COUNCIL_PROVIDER_RUN is exactly "1".
 //
-// Runner is nil and Enabled is false, so councilRunGate reports "disabled" and the
-// handler returns before any workspace, harness or runner is touched. Execution is
-// impossible as a STRUCTURAL fact rather than a flag that configuration could flip:
-// no runner exists to call, and this package constructs none here. In particular
-// newRealCouncilProviderRunner is never called, so no provider process can start.
+// With the gate off (the default, and always in CI) Runner stays nil and Enabled
+// stays false, so councilRunGate reports "disabled" and no provider process can
+// start. newRealCouncilProviderRunner is passed as a factory but is CALLED only on
+// the enabled path, so constructing this registration launches nothing.
 //
-// Injecting a real runner behind a gate is a LATER change that requires separate
-// approval. The legacy /api/workflow/run path is untouched and never reused here.
+// The legacy /api/workflow/run path is untouched and never reused here.
 func registerPlanningCouncilRoutes(mux *http.ServeMux, root string) {
-	mux.HandleFunc(planningCouncilProviderRunPath, newPlanningCouncilProviderRunHandler(
-		planningCouncilProviderRunEndpointDeps{
-			RepoRoot:    root,
-			MutationDir: root,
-			Enabled:     false,
-			Runner:      nil,
-		}))
+	deps := buildPlanningCouncilProviderRunDeps(planningCouncilGateOptions{
+		repoRoot:      root,
+		getenv:        os.Getenv,
+		newRealRunner: func(r string) councilProviderRunner { return newRealCouncilProviderRunner(r) },
+	})
+	mux.HandleFunc(planningCouncilProviderRunPath, newPlanningCouncilProviderRunHandler(deps))
 }
