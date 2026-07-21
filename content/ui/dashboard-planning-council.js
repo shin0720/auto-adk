@@ -146,5 +146,8 @@
             // PR #30: client-only mock execution section. No provider run.
             const mock = (typeof renderProviderMockExecution === 'function') ? renderProviderMockExecution() : '';
             const mockCard = mock ? card('모의 실행 (Mock · read-only)', mock) : '';
-            return `<h3 class="intake-section-title">Multi-AI Planning Council (수동)</h3>` + card('Planning Council', body, { badge: c.status }) + promptCard + mockCard;
+            // PR #53: real provider run result summary (read-only, summary-only).
+            const runResult = (typeof renderProviderRunResult === 'function') ? renderProviderRunResult() : '';
+            const runResultCard = runResult ? card('실제 실행 결과 요약 (Real · summary-only)', runResult) : '';
+            return `<h3 class="intake-section-title">Multi-AI Planning Council (수동)</h3>` + card('Planning Council', body, { badge: c.status }) + promptCard + mockCard + runResultCard;
         }
