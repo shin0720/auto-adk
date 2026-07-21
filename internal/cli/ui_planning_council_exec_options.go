@@ -60,8 +60,10 @@ func buildReadOnlyProviderOptions(provider, prompt, tempCwd, repoRoot string) (r
 		// --dangerously-skip-permissions, so file tools stay permission-gated.
 		args = []string{"--print"}
 	case "codex":
-		// exec WITHOUT --full-auto: no auto-approved writes.
-		args = []string{"exec"}
+		// Codex runs from an isolated non-repo temp cwd; skip only the git-repo
+		// precheck while pinning the sandbox to read-only. No --full-auto, no
+		// auto-approved writes. Prompt remains on stdin.
+		args = []string{"exec", "--skip-git-repo-check", "--sandbox", "read-only"}
 	case "gemini":
 		// -p prompt mode WITHOUT any auto-approve/write flag.
 		args = []string{"-p"}

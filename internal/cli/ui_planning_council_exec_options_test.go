@@ -99,6 +99,77 @@ func TestBuildReadOnlyProviderOptions_RejectsRepoRootCwd(t *testing.T) {
 	}
 }
 
+func TestBuildReadOnlyProviderOptions_CodexReadOnlyNonRepoArgs(t *testing.T) {
+	tempCwd := t.TempDir()
+	opts, err := buildReadOnlyProviderOptions("codex", "hello", tempCwd, "")
+	if err != nil {
+		t.Fatalf("codex options: %v", err)
+	}
+
+	// Exact args order is pinned so a regression in flag order is caught.
+	want := []string{"exec", "--skip-git-repo-check", "--sandbox", "read-only"}
+	if len(opts.Args) != len(want) {
+		t.Fatalf("codex args = %v, want %v", opts.Args, want)
+	}
+	for i := range want {
+		if opts.Args[i] != want[i] {
+			t.Fatalf("codex args[%d] = %q, want %q (full: %v)", i, opts.Args[i], want[i], opts.Args)
+		}
+	}
+
+	// --sandbox must be immediately followed by read-only.
+	sbIdx := -1
+	for i, a := range opts.Args {
+		if a == "--sandbox" {
+			sbIdx = i
+			break
+		}
+	}
+	if sbIdx < 0 || sbIdx+1 >= len(opts.Args) || opts.Args[sbIdx+1] != "read-only" {
+		t.Fatalf("--sandbox must be followed by read-only, got %v", opts.Args)
+	}
+
+	// --ephemeral is intentionally excluded from this patch.
+	for _, a := range opts.Args {
+		if a == "--ephemeral" {
+			t.Fatalf("--ephemeral must not be present in this patch: %v", opts.Args)
+		}
+	}
+
+	// The new flags must not be seen as dangerous by the guard.
+	if flag, bad := containsDangerousFlag(opts.Args); bad {
+		t.Fatalf("codex read-only args flagged as dangerous: %s", flag)
+	}
+
+	// Prompt stays on stdin, never in args.
+	if opts.Stdin != "hello" {
+		t.Fatalf("codex Stdin = %q, want the prompt", opts.Stdin)
+	}
+	for _, a := range opts.Args {
+		if strings.Contains(a, "hello") {
+			t.Fatalf("prompt leaked into codex args: %v", opts.Args)
+		}
+	}
+}
+
+func TestBuildReadOnlyProviderOptions_ClaudeAndGeminiArgsUnchanged(t *testing.T) {
+	tempCwd := t.TempDir()
+	claude, err := buildReadOnlyProviderOptions("claude", "hi", tempCwd, "")
+	if err != nil {
+		t.Fatalf("claude: %v", err)
+	}
+	if len(claude.Args) != 1 || claude.Args[0] != "--print" {
+		t.Fatalf("claude args = %v, want [--print]", claude.Args)
+	}
+	gemini, err := buildReadOnlyProviderOptions("gemini", "hi", tempCwd, "")
+	if err != nil {
+		t.Fatalf("gemini: %v", err)
+	}
+	if len(gemini.Args) != 1 || gemini.Args[0] != "-p" {
+		t.Fatalf("gemini args = %v, want [-p]", gemini.Args)
+	}
+}
+
 func TestContainsDangerousFlag_DetectsValueForm(t *testing.T) {
 	if _, bad := containsDangerousFlag([]string{"--approval-mode=full-auto"}); !bad {
 		t.Fatalf("expected detection of --approval-mode=full-auto")
