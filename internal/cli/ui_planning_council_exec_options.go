@@ -65,8 +65,12 @@ func buildReadOnlyProviderOptions(provider, prompt, tempCwd, repoRoot string) (r
 		// auto-approved writes. Prompt remains on stdin.
 		args = []string{"exec", "--skip-git-repo-check", "--sandbox", "read-only"}
 	case "gemini":
-		// -p prompt mode WITHOUT any auto-approve/write flag.
-		args = []string{"-p"}
+		// gemini -p/--prompt requires a [string] value and triggers non-interactive
+		// (headless) mode. A bare "-p" fails argument parsing, so pass an empty
+		// value: it satisfies the flag while the real prompt is still delivered via
+		// stdin (help: "Appended to input on stdin"), keeping the prompt OUT of argv
+		// exactly like claude/codex. No auto-approve/write flag (never --yolo).
+		args = []string{"-p", ""}
 	default:
 		return readOnlyProviderOptions{}, fmt.Errorf("unknown provider: %q", provider)
 	}

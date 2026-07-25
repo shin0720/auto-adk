@@ -152,7 +152,7 @@ func TestBuildReadOnlyProviderOptions_CodexReadOnlyNonRepoArgs(t *testing.T) {
 	}
 }
 
-func TestBuildReadOnlyProviderOptions_ClaudeAndGeminiArgsUnchanged(t *testing.T) {
+func TestBuildReadOnlyProviderOptions_ClaudeArgsUnchanged(t *testing.T) {
 	tempCwd := t.TempDir()
 	claude, err := buildReadOnlyProviderOptions("claude", "hi", tempCwd, "")
 	if err != nil {
@@ -161,12 +161,31 @@ func TestBuildReadOnlyProviderOptions_ClaudeAndGeminiArgsUnchanged(t *testing.T)
 	if len(claude.Args) != 1 || claude.Args[0] != "--print" {
 		t.Fatalf("claude args = %v, want [--print]", claude.Args)
 	}
-	gemini, err := buildReadOnlyProviderOptions("gemini", "hi", tempCwd, "")
+}
+
+// gemini -p/--prompt requires a value; the builder passes an empty value so
+// headless mode triggers while the prompt stays on stdin (never in argv).
+func TestBuildReadOnlyProviderOptions_GeminiValuedPromptFlag(t *testing.T) {
+	const prompt = "SECRET-LOOKING-PROMPT-TEXT"
+	tempCwd := t.TempDir()
+	opts, err := buildReadOnlyProviderOptions("gemini", prompt, tempCwd, "")
 	if err != nil {
 		t.Fatalf("gemini: %v", err)
 	}
-	if len(gemini.Args) != 1 || gemini.Args[0] != "-p" {
-		t.Fatalf("gemini args = %v, want [-p]", gemini.Args)
+	if len(opts.Args) != 2 || opts.Args[0] != "-p" || opts.Args[1] != "" {
+		t.Fatalf("gemini args = %v, want [-p, \"\"]", opts.Args)
+	}
+	// The prompt travels on stdin, never in argv (process-table safe).
+	if opts.Stdin != prompt {
+		t.Fatalf("gemini Stdin = %q, want the prompt", opts.Stdin)
+	}
+	for _, a := range opts.Args {
+		if strings.Contains(a, prompt) {
+			t.Fatalf("prompt leaked into gemini args: %v", opts.Args)
+		}
+	}
+	if flag, bad := containsDangerousFlag(opts.Args); bad {
+		t.Fatalf("gemini args flagged as dangerous: %s", flag)
 	}
 }
 
