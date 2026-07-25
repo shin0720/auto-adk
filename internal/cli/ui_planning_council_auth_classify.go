@@ -30,6 +30,10 @@ var councilAuthFailurePatterns = []string{
 	"session expired",
 	"run `claude login`",
 	"run 'claude login'",
+	// Gemini CLI reports a missing auth method / GEMINI_API_KEY when headless auth
+	// is not configured; these phrases are distinctive enough to avoid false trips.
+	"set an auth method",
+	"gemini_api_key",
 }
 
 // classifyCouncilProviderAuthFailure decides whether a FAILED provider run failed
