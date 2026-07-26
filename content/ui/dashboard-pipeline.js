@@ -30,7 +30,9 @@
             }
             if (data.status !== 'success') {
                 setNodeStatus(agentId, 'error');
-                appendTerminalLog('System', '❌ 에러: ' + data.message);
+                // Guard: a response without a message must not render "undefined".
+                const errMessage = (data && data.message) ? data.message : '알 수 없는 오류';
+                appendTerminalLog('System', '❌ 에러: ' + errMessage);
                 saveState();
                 const recoveryTarget = errorRecoveryMap[agentId];
                 if (recoveryTarget && recoveryAttempts < MAX_RECOVERY) {
