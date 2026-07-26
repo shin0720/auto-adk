@@ -47,6 +47,34 @@ func TestClassifyCouncilProviderAuthFailure_MatchesRawText(t *testing.T) {
 	}
 }
 
+// Gemini's missing-auth-method failure (exitCode 41) must classify as authRequired.
+// The samples are SANITIZED: no real path, email, API key, or full output — only
+// the distinctive auth phrases with a [REDACTED_PATH] placeholder.
+func TestClassifyCouncilProviderAuthFailure_GeminiMissingAuthMethod(t *testing.T) {
+	cases := []struct {
+		name   string
+		stderr string
+	}{
+		{"set an auth method", "Please set an Auth method in [REDACTED_PATH]/.gemini/settings.json or specify GEMINI_API_KEY before running"},
+		{"gemini_api_key only", "no auth configured; specify GEMINI_API_KEY environment variable"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			ok, reason := classifyCouncilProviderAuthFailure("gemini", "", tc.stderr, 41)
+			if !ok {
+				t.Fatalf("expected authRequired for gemini stderr %q", tc.stderr)
+			}
+			if !strings.HasPrefix(reason, "provider auth failure: ") {
+				t.Errorf("reason = %q, want a fixed prefixed reason", reason)
+			}
+			// The reason is a fixed pattern; it must not echo the sample output.
+			if strings.Contains(reason, "REDACTED_PATH") || strings.Contains(reason, "settings.json") {
+				t.Errorf("reason %q leaked sample output", reason)
+			}
+		})
+	}
+}
+
 // Ordinary non-auth failures, and generic single words, must NOT classify as auth.
 func TestClassifyCouncilProviderAuthFailure_NoFalsePositives(t *testing.T) {
 	cases := []struct {
