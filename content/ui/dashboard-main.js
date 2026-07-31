@@ -12,7 +12,7 @@
                 persistAgentFiles();
                 await loadFiles();
                 appendTerminalLog('System', `파일 업로드 완료: ${data.uploaded.join(', ')}`);
-            } catch(e) { appendTerminalLog('System', '파일 업로드 실패: ' + e.message); }
+            } catch(e) { appendTerminalLog('System', '파일 업로드 실패: ' + ((e && e.message) ? e.message : '알 수 없는 오류')); }
             event.target.value = '';
         }
 
