@@ -19,6 +19,22 @@
             if (agent !== 'System') { logAgents.add(agent); renderLogTabs(); }
         }
 
+        // clearTerminalLogs clears ONLY the terminal log history. It is invoked
+        // solely by an explicit user click on the "로그 지우기" button — never on
+        // page load, workflow start/finish, or provider status refresh. It does NOT
+        // touch workflow nodes/outputs, connections, approval, planningCouncil,
+        // provider results, files, or canvas layout — only workflowState.logs.
+        function clearTerminalLogs() {
+            if (!confirm('터미널 로그만 지울까요? 작업 결과·파일·승인 내역은 삭제되지 않습니다.')) return;
+            workflowState.logs = [];
+            const terminal = document.getElementById('terminal');
+            if (terminal) terminal.innerHTML = '';
+            logAgents.clear();
+            activeLogTab = 'all';
+            if (typeof renderLogTabs === 'function') renderLogTabs();
+            if (typeof saveState === 'function') saveState();
+        }
+
         function showStreamingChunks(agentId, agentName, fullText) {
             const old = chunkQueues.get(agentId);
             if (old) { clearTimeout(old.timer); chunkQueues.delete(agentId); }

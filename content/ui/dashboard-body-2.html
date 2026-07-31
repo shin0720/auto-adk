@@ -206,6 +206,9 @@
             </div>
         </div>
         <div id="log-tab-bar" style="display:none; background:var(--bg); border-top:1px solid var(--border); padding:4px 8px; gap:4px; flex-wrap:nowrap; overflow-x:auto;"></div>
+        <div id="log-controls" style="display:flex; justify-content:flex-end; align-items:center; background:var(--bg); border-top:1px solid var(--border); padding:2px 8px;">
+            <button id="btn-clear-logs" onclick="clearTerminalLogs()" title="터미널 로그만 지웁니다. 작업 결과·파일·승인 내역은 삭제되지 않습니다." style="background:transparent; border:1px solid var(--border); color:var(--text-dim); padding:2px 10px; border-radius:12px; cursor:pointer; font-size:11px;">🧹 로그 지우기</button>
+        </div>
         <div id="terminal" class="terminal"><div data-agent="System"><strong>[16시 31분 0초] [System]</strong> 16인 완전체 팀 소환 완료. 정식판 v5.0 가동.</div></div>
     </div>
 
