@@ -188,8 +188,11 @@ func handleProviderStatus(w http.ResponseWriter, r *http.Request) {
 			// Config detection is stat-only: a config file/dir exists, but auth is
 			// NOT verified (no run happened). The label says so explicitly so users
 			// do not read config-detection as a confirmed login.
-			st.StatusLabel = "설정 감지됨 · 인증 미확인"
-			st.StatusDetail = "설정 파일 감지 · 실행 검증 전(인증은 실제 실행 시 확인)"
+			// Compact label (caveat-first) so the ".status-sub" ellipsis never
+			// truncates the important part; full context lives in StatusDetail,
+			// surfaced via the frontend title tooltip.
+			st.StatusLabel = "인증 미확인"
+			st.StatusDetail = "설정 파일 감지 · 실제 실행 전 인증 미검증"
 		} else {
 			// Binary present but no login/config detected → conservative.
 			st.Connected = true
