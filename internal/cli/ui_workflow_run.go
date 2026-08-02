@@ -34,6 +34,17 @@ func unregisterAgentCancel(agentID string) {
 func handleWorkflowRun(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	// Default-disabled guard. This legacy path spawns real provider subprocesses
+	// (Claude with --dangerously-skip-permissions) and instructs direct file
+	// edits, with no separate env gate of its own. Keep it structurally
+	// unreachable unless explicitly opted in, so a stray "실전 분석 시작" click
+	// cannot trigger a provider run by default. Must stay ahead of any binary
+	// resolution or subprocess launch below.
+	if !legacyWorkflowRunEnabled(os.Getenv) {
+		writeLegacyWorkflowRunDisabled(w)
+		return
+	}
+
 	var req workflowRunRequest
 	_ = json.NewDecoder(r.Body).Decode(&req)
 	agentName := workflowAgentName(req.AgentID)
