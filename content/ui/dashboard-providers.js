@@ -147,6 +147,12 @@
                     if (label) label.innerText = provider.statusLabel
                         ? provider.statusLabel + (provider.connected && lastPromptTokens > 0 ? ` · ~${lastPromptTokens.toLocaleString()}토큰` : '')
                         : (provider.connected ? (provider.version || 'connected') : (provider.issue || 'CLI 실행 불가'));
+                    // Surface the fuller status detail on hover — the compact label is
+                    // intentionally short and ellipsis-clipped in the top bar.
+                    const detailTitle = provider.statusDetail || provider.statusLabel || '';
+                    if (label) label.title = detailTitle;
+                    const item = label ? label.closest('.status-item') : null;
+                    if (item && detailTitle) item.title = detailTitle;
                     if (btn) btn.style.display = provider.connected ? 'none' : '';
                 });
             } catch (e) {
