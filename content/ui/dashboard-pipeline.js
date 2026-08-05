@@ -28,6 +28,18 @@
                 recoveryAttempts = 0;
                 return;
             }
+            if (data.status === 'disabled') {
+                // Legacy /api/workflow/run is gated off by default (PR #71). This is
+                // an intentional configuration state, not a runtime failure: reset the
+                // node to idle (not 'error'), show a Korean notice, and skip the
+                // error-recovery loop entirely. A fixed Korean string is logged, so no
+                // dynamic value can leak in. Must stay ahead of the error branch below.
+                setNodeStatus(agentId, '');
+                recoveryAttempts = 0;
+                appendTerminalLog('System', 'ℹ️ 실전 분석 실행은 기본 비활성화 상태입니다. 유지보수 실행 시에만 활성화됩니다.');
+                saveState();
+                return;
+            }
             if (data.status !== 'success') {
                 setNodeStatus(agentId, 'error');
                 // Guard: a response without a message must not render "undefined".
