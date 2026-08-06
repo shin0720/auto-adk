@@ -2,7 +2,12 @@
             lastPromptTokens = Math.ceil(prompt.length / 3.5);
             const agent = agentMap[agentId];
             setNodeStatus(agentId, 'active');
-            appendTerminalLog(agent.name, handoff ? '이전 결과를 바탕으로 심층 분석 중...' : '분석 엔진을 가동합니다. 잠시만 기다려주세요...');
+            // Neutral pre-flight copy: this fires BEFORE the /api/workflow/run
+            // response, so it must not imply the engine already started — otherwise
+            // a default-disabled run reads as "started → then disabled". The real
+            // engine-start message is emitted by the backend via SSE only after the
+            // guard passes (enabled path), so no start signal is lost here.
+            appendTerminalLog(agent.name, handoff ? '이전 결과를 바탕으로 심층 분석 중...' : '실행 가능 여부를 확인합니다. 잠시만 기다려주세요...');
             const ns = getNodeState(agentId);
             ns.lastPrompt = prompt;
             ns.originalRequest = originalRequest !== null ? originalRequest : prompt;
