@@ -9,10 +9,15 @@ import (
 	"time"
 )
 
-// planningCouncilProviderRunPath is the path this endpoint WILL be served at once
-// a gated real runner exists. It is reserved as a constant only: ui.go does not
-// register this handler, so there is no HTTP surface and no production caller
-// today. The legacy /api/workflow/run path is untouched and is never reused here.
+// planningCouncilProviderRunPath is the route this endpoint is served at.
+// registerPlanningCouncilRoutes (see ui_routes.go) registers it on the UI mux, so a
+// production HTTP surface DOES exist and the frontend "실제 실행 (1회)" button posts
+// here. Reachability is not what keeps it safe: in the default production runtime
+// buildPlanningCouncilProviderRunDeps leaves Runner==nil (the env gate is off), so
+// councilRunGate reports "disabled" and the handler returns before any runner,
+// workspace, or provider process is touched. A real provider run is possible ONLY
+// when AUTOPUS_PLANNING_COUNCIL_PROVIDER_RUN is exactly "1" AND a real runner is
+// wired. The legacy /api/workflow/run path is untouched and is never reused here.
 const planningCouncilProviderRunPath = "/api/planning-council/providers/run"
 
 // Endpoint-level statuses that no runner can produce. The remaining statuses in
@@ -102,8 +107,11 @@ type planningCouncilProviderRunEndpointDeps struct {
 	cleanupOverride func() error
 }
 
-// newPlanningCouncilProviderRunHandler builds the handler. It is intentionally NOT
-// registered on any mux; callers in this PR are tests only.
+// newPlanningCouncilProviderRunHandler builds the handler. It is registered on the
+// UI mux by registerPlanningCouncilRoutes, but the handler runs no provider unless
+// its deps carry an enabled, non-nil Runner. The default production deps do not
+// (Runner==nil, gate off), so on that path this route answers "disabled" and never
+// reaches a runner, subprocess, or model call.
 func newPlanningCouncilProviderRunHandler(deps planningCouncilProviderRunEndpointDeps) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
